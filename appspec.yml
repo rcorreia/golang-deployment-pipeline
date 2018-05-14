@@ -13,4 +13,4 @@ hooks:
   ApplicationStart:
     - location: codedeploy/ApplicationStart.sh
   ValidateService:
-    - location: codedeploy/ValidateService.sh      
+    - location: codedeploy/ValidateService.sh

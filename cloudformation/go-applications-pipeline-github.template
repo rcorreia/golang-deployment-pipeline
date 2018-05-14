@@ -7,21 +7,21 @@ Description: >
     This CloudFormation template will deploy a full CI/CD pipeline for Go
     development. It includes building with AWS CodeBuild, and infrastructure
     deployment via AWS CloudFormation. It will create an AWS CodePipeline for
-    orchastrating builds, testing and deployments to beta and production 
-    environments. 
+    orchastrating builds, testing and deployments to beta and production
+    environments.
 
 Parameters:
-    
-    ApplicationName: 
+
+    ApplicationName:
         Description: This will be used to name the pipeline and build resources
         Type: String
         AllowedPattern: '[A-Za-z0-9-]+'
-    
+
     ArtifactS3Bucket:
         Description: An existing S3 bucket within this AWS account
         Type: String
 
-    GitHubOAuthToken: 
+    GitHubOAuthToken:
         Description: Create a token with 'repo' and 'admin:repo_hook' permissions here https://github.com/settings/tokens
         Type: String
 
@@ -48,13 +48,13 @@ Metadata:
 
     AWS::CloudFormation::Interface:
         ParameterGroups:
-            - 
-                Label: 
+            -
+                Label:
                     default: Application Configuration
                 Parameters:
                     - ApplicationName
                     - ArtifactS3Bucket
-            - 
+            -
                 Label:
                     default: GitHub Configuration
                 Parameters:
@@ -62,19 +62,19 @@ Metadata:
                     - GitHubUser
                     - GitHubRepository
                     - GitHubBranch
-            
+
         ParameterLabels:
-            ApplicationName: 
+            ApplicationName:
                 default: Application Name
-            ArtifactS3Bucket: 
+            ArtifactS3Bucket:
                 default: CodePipeline S3 Bucket
-            GitHubRepository: 
+            GitHubRepository:
                 default: Repository Name
-            GitHubUser: 
+            GitHubUser:
                 default: Repository Owner
-            GitHubBranch: 
+            GitHubBranch:
                 default: Repository Branch
-            GitHubOAuthToken: 
+            GitHubOAuthToken:
                 default: OAuth2 Token
 
 Resources:
@@ -84,11 +84,11 @@ Resources:
         Properties:
             Name: !Ref ApplicationName
             RoleArn: !Sub ${CodePipelineRole.Arn}
-            ArtifactStore: 
+            ArtifactStore:
                 Type: S3
                 Location: !Ref ArtifactS3Bucket
             Stages:
-                - 
+                -
                     Name: Source
                     Actions:
                         -
@@ -112,19 +112,19 @@ Resources:
                             Name: CodeBuild
                             InputArtifacts:
                                 - Name: Source
-                            ActionTypeId: 
+                            ActionTypeId:
                                 Category: Build
                                 Owner: AWS
                                 Version: 1
                                 Provider: CodeBuild
                             OutputArtifacts:
                                 - Name: Built
-                            Configuration: 
+                            Configuration:
                                 ProjectName: !Ref CodeBuild
                 -
                     Name: Staging
                     Actions:
-                        - 
+                        -
                             Name: DeployInfrastructure
                             RunOrder: 1
                             InputArtifacts:
@@ -147,34 +147,34 @@ Resources:
                                         "EnvironmentName": "staging",
                                         "ArtifactS3Bucket": "${ArtifactS3Bucket}"
                                     }
-                        - 
+                        -
                             Name: DeployApplication
                             RunOrder: 2
-                            InputArtifacts: 
+                            InputArtifacts:
                                 - Name: Built
                             ActionTypeId:
                                 Category: Deploy
                                 Owner: AWS
                                 Version: 1
                                 Provider: CodeDeploy
-                            Configuration: 
+                            Configuration:
                                 ApplicationName: !Ref ApplicationName
                                 DeploymentGroupName: staging
-                - 
+                -
                     Name: Approvals
                     Actions:
-                        - 
+                        -
                             Name: ProductionGate
-                            ActionTypeId: 
+                            ActionTypeId:
                                 Category: Approval
                                 Owner: AWS
                                 Version: 1
                                 Provider: Manual
-                                
+
                 -
                     Name: Production
                     Actions:
-                        - 
+                        -
                             Name: DeployInfrastructure
                             RunOrder: 1
                             InputArtifacts:
@@ -197,20 +197,20 @@ Resources:
                                         "EnvironmentName": "production",
                                         "ArtifactS3Bucket": "${ArtifactS3Bucket}"
                                     }
-                        - 
+                        -
                             Name: DeployApplication
                             RunOrder: 2
-                            InputArtifacts: 
+                            InputArtifacts:
                                 - Name: Built
                             ActionTypeId:
                                 Category: Deploy
                                 Owner: AWS
                                 Version: 1
                                 Provider: CodeDeploy
-                            Configuration: 
+                            Configuration:
                                 ApplicationName: !Ref ApplicationName
                                 DeploymentGroupName: production
-                        
+
 
     CodeBuild:
         Type: AWS::CodeBuild::Project
@@ -225,7 +225,7 @@ Resources:
                 Image: aws/codebuild/golang:1.7.3
                 Type: LINUX_CONTAINER
                 EnvironmentVariables:
-                    - 
+                    -
                         Name: ARTIFACT_S3_BUCKET
                         Value: !Sub ${ArtifactS3Bucket}
             Artifacts:
@@ -234,7 +234,7 @@ Resources:
 
     CodePipelineRole:
         Type: AWS::IAM::Role
-        Properties: 
+        Properties:
             Path: /
             RoleName: !Sub ${ApplicationName}-CodePipeline-${AWS::Region}
             AssumeRolePolicyDocument: |
@@ -242,15 +242,15 @@ Resources:
                     "Statement": [{
                         "Action": "sts:AssumeRole",
                         "Effect": "Allow",
-                        "Principal": { 
-                            "Service": "codepipeline.amazonaws.com" 
+                        "Principal": {
+                            "Service": "codepipeline.amazonaws.com"
                         }
                     }]
                 }
-            Policies: 
-                - 
+            Policies:
+                -
                     PolicyName: !Sub ${ApplicationName}-CodePipeline-${AWS::Region}
-                    PolicyDocument: !Sub |                    
+                    PolicyDocument: !Sub |
                         {
                             "Statement": [
                                 {
@@ -314,7 +314,7 @@ Resources:
 
     CodePipelineCloudFormationRole:
         Type: AWS::IAM::Role
-        Properties: 
+        Properties:
             Path: /
             RoleName: !Sub ${ApplicationName}-CloudFormation-${AWS::Region}
             AssumeRolePolicyDocument: |
@@ -322,15 +322,15 @@ Resources:
                         "Statement": [{
                             "Action": "sts:AssumeRole",
                             "Effect": "Allow",
-                            "Principal": { 
-                                "Service": "cloudformation.amazonaws.com" 
+                            "Principal": {
+                                "Service": "cloudformation.amazonaws.com"
                             }
                         }]
                     }
-            Policies: 
-                - 
+            Policies:
+                -
                     PolicyName: !Sub ${ApplicationName}-CloudFormation-${AWS::Region}
-                    PolicyDocument: !Sub |                    
+                    PolicyDocument: !Sub |
                         {
                             "Statement": [{
                                     "Effect": "Allow",
@@ -407,7 +407,7 @@ Resources:
                                       "codedeploy:DeleteDeploymentGroup"
                                      ],
                                     "Resource": "*"
-                            },                                
+                            },
                             {
                                     "Effect": "Allow",
                                     "Action": [
@@ -440,7 +440,7 @@ Resources:
 
     CodeDeployServiceRole:
         Type: AWS::IAM::Role
-        Properties: 
+        Properties:
             Path: /
             RoleName: !Sub ${ApplicationName}-CodeDeploy-${AWS::Region}
             AssumeRolePolicyDocument: |
@@ -448,12 +448,12 @@ Resources:
                     "Statement": [{
                         "Action": "sts:AssumeRole",
                         "Effect": "Allow",
-                        "Principal": { 
-                            "Service": "codedeploy.amazonaws.com" 
+                        "Principal": {
+                            "Service": "codedeploy.amazonaws.com"
                         }
                     }]
                 }
-            Policies: 
+            Policies:
                 - PolicyName: !Sub ${AWS::StackName}-${AWS::Region}
                   PolicyDocument: !Sub |
                     {
@@ -482,7 +482,7 @@ Resources:
 
     CodeBuildRole:
         Type: AWS::IAM::Role
-        Properties: 
+        Properties:
             Path: /
             RoleName: !Sub ${ApplicationName}-CodeBuild-${AWS::Region}
             AssumeRolePolicyDocument: |
@@ -490,17 +490,17 @@ Resources:
                         "Statement": [{
                             "Action": "sts:AssumeRole",
                             "Effect": "Allow",
-                            "Principal": { 
-                                "Service": "codebuild.amazonaws.com" 
+                            "Principal": {
+                                "Service": "codebuild.amazonaws.com"
                             }
                         }]
                     }
-            Policies: 
-                - 
+            Policies:
+                -
                     PolicyName: !Sub ${ApplicationName}-CodeBuild-${AWS::Region}
-                    PolicyDocument: !Sub |      
+                    PolicyDocument: !Sub |
                         {
-                            "Statement": [              
+                            "Statement": [
                                 {
                                     "Effect": "Allow",
                                     "Resource": [ "*" ],
@@ -579,7 +579,7 @@ Outputs:
 
     CodePipelineURL:
         Description: The URL for the created pipeline
-        Value: !Sub https://${AWS::Region}.console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${ApplicationName}      
+        Value: !Sub https://${AWS::Region}.console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${ApplicationName}
 
     CodeDeployApplication:
         Description: The CodeDeploy application used across all environments
